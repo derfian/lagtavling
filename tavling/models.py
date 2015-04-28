@@ -8,7 +8,7 @@ class Tavling(models.Model):
                      (u'HO', u'Hoppklass'))
     namn = models.CharField("Tävlingsnamn", max_length=200)
     typ = models.CharField("Klass", max_length=2, choices=TAVLING_TYPES)
-    reftid = models.DecimalField("Referenstid", max_digits=5, decimal_places=2, blank=True)
+    reftid = models.DecimalField("Referenstid", max_digits=5, decimal_places=2, null=True, blank=True)
 
     def __unicode__(self):
         return "%s (%s)" % (self.namn, self.typ)
