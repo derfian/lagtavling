@@ -1,0 +1,6 @@
+{% extends "tavling/base.html" %}
+
+{% block content %}
+{{ tavling }}
+{% endblock %}
+

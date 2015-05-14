@@ -1,0 +1,54 @@
+{# -*- mode: web; -*- #}
+{% extends "tavling/base.html" %}
+
+{% load resultat_extras %}
+
+{% block content %}
+<h1>Lagtävlingsresultat</h1>
+
+{% for t in tavlingar %}
+    <h2>{{ t }}</h2>
+    <dl>
+        <dt>Domare</dt>
+        <dd>{{ t.domare }}</dd>
+        <dt>Referenstid</dt>
+        <dd>{{ t.reftid|default_if_none:"Ingen referenstid fastställd" }}</dd>
+    </dl>
+
+    <table class="table table-striped">
+        <tr>
+            <th colspan="2">Ekipage</th>
+            <th>Tid</th>
+            <th>Fel</th>
+        </tr>
+        {% for lag, laginfo in t.deltagare.items %}
+            <tr>
+                <th colspan="2">{{ lag }}</th>
+                <td>{{ laginfo.resultat.tid|lagresultat_tid }}</td>
+                <td>{{ laginfo.resultat.fel|lagresultat_fel }}</td>
+            </tr>
+
+            {% for ekipage, resultat in laginfo.deltagare.items %}
+                <tr>
+                    <td></td>
+                    {% if resultat.tid == -1 %}
+                        <td><s>{{ ekipage }}</s></td>
+                    {% else %}
+                        <td>{{ ekipage }}</td>
+                    {% endif %}
+                    <td>{{ resultat.tid|resultat_tid }}</td>
+                    <td>{{ resultat.fel|resultat_fel }}</td>
+                </tr>
+            {% endfor %}
+        {% empty %}
+            <tr>
+                <td>Inga deltagande lag.</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% empty %}
+    Inga tävlingar inlagda.
+{% endfor %}
+
+{% endblock %}
+

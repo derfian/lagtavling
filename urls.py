@@ -4,11 +4,15 @@ from django.conf.urls.defaults import patterns, include, url
 from django.contrib import admin
 admin.autodiscover()
 
-urlpatterns = patterns('',
+urlpatterns = patterns('tavling.views',
     # Examples:
-    # url(r'^$', 'lagtavling.views.home', name='home'),
-    # url(r'^lagtavling/', include('lagtavling.foo.urls')),
+    url(r'^$',                              'index'),
+    url(r'^tavling/(?P<tavling_id>\d+)/$',  'tavling'),
+    url(r'^ekipage/(?P<ekipage_id>\d+)/$',  'ekipage'),
+    url(r'^lag/(?P<lag_id>\d+)/$',          'lag'),
+)
 
+urlpatterns += patterns('',
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 

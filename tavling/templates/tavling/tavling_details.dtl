@@ -1,0 +1,37 @@
+{# -*- mode: web; -*- #}
+
+{% extends "tavling/base.html" %}
+
+{% block content %}
+    <h1>{{ tavling.namn }}</h1>
+
+    {{ resultat }}
+    <h2>Resultat</h2>
+    <table class="table table-striped">
+        {% for lag, ekipage in resultat.items %}
+            <tr>
+                <th colspan="6">
+                    {{ lag }}
+                </th>
+            </tr>
+            <tr>
+                <th>Hund</th>
+                <th>Registreringsnummer</th>
+                <th>Ras</th>
+                <th>Förare</th>
+                <th>Tid</th>
+                <th>Fel</th>
+            </tr>
+            {% for e, resultat in ekipage.items %}
+                <tr>
+                    <td>{{ e.hundnamn }}</td>
+                    <td>{{ e.hundid }}</td>
+                    <td>{{ e.hundras }}</td>
+                    <td>{{ e.forare }}</td>
+                    <td>{{ resultat.tid }}</td>
+                    <td>{{ resultat.fel }}</td>
+                </tr>
+            {% endfor %}
+        {% endfor %}
+    </table>
+{% endblock %}
