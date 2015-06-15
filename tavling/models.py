@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.db import models, connection
 # Create your models here.
-import logging
 import operator
 
 # ----------------------------------------
@@ -36,10 +35,8 @@ class Klass(models.Model):
             _a['deltagare'].sort(key=operator.itemgetter('resultat'))
             alla.append(_a)
 
-        a = [SortableResult(x['resultat']['fel'], x['resultat']['tid']) for x in alla]
-        print a
-        print sorted(a)
-        return sorted(alla, key=lambda x: SortableResult(x['resultat']['fel'], x['resultat']['tid']))
+        a = [SortableResult(x['resultat']['fel'], x['resultat']['tid'], False) for x in alla]
+        return sorted(alla, key=lambda x: SortableResult(x['resultat']['fel'], x['resultat']['tid'], False))
 
 # ----------------------------------------
 
