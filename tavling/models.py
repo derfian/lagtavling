@@ -7,14 +7,14 @@ import operator
 # ----------------------------------------
 
 class Klass(models.Model):
-    namn = models.CharField("Tävlingsnamn", max_length=200)
+    namn = models.CharField("Klassnamn", max_length=200)
     domare = models.CharField("Domare", max_length=100)
     reftid = models.DecimalField("Referenstid", max_digits=5, decimal_places=2, null=True, blank=True)
     plats = models.CharField("Plats", max_length=50)
     tid = models.DateField("Datum")
 
     def __unicode__(self):
-        return "%s, %s" % (self.namn, self.typ)
+        return "%s, %s, %s" % (self.namn, self.plats, self.tid)
 
     def deltagare(self):
         alla = []
@@ -57,7 +57,7 @@ class Ekipage(models.Model):
 class Lag(models.Model):
     namn = models.CharField("Lagets namn", max_length=60)
     tavling = models.ManyToManyField(Klass, through='Laganmalan', related_name='lag')
-    ekipage = models.ManyToManyField(Ekipage, related_name='lag')
+    ekipage = models.ManyToManyField(Ekipage, through='LagEkipage', related_name='lag')
 
     def __unicode__(self):
         return "%s" % self.namn
@@ -116,6 +116,16 @@ class Laganmalan(models.Model):
 
     def __unicode__(self):
         return "<Lag %s: Klass %s>" % (self.lag, self.tavling)
+
+# ----------------------------------------
+
+class LagEkipage(models.Model):
+    ekipage = models.ForeignKey(Ekipage)
+    lag = models.ForeignKey(Lag)
+    startnummer = models.CharField(maxlength=1)
+
+    def __unicode__(self):
+        return "<Lag %s >" % (self.lag.startordning, self.tavling)
 
 # ----------------------------------------
 
