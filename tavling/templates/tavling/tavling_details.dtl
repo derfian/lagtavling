@@ -1,6 +1,6 @@
 {# -*- mode: web; -*- #}
 
-{% extends "tavling/base.html" %}
+{% extends "tavling/base.dtl" %}
 
 {% block content %}
     <h1>{{ tavling.namn }}</h1>

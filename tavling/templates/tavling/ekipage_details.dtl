@@ -1,6 +1,7 @@
-{% extends "tavling/base.html" %}
+{# -*- mode: web -*- #}
+{% extends "tavling/base.dtl" %}
 
 {% block content %}
-{{ tavling }}
+    {{ ekipage }}
 {% endblock %}
 

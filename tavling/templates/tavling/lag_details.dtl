@@ -1,2 +1,8 @@
-{{ tavling }}
+{# -*- mode: web; -*- #}
+
+{% extends "tavling/base.dtl" %}
+
+{% block content %}
+   {{ lag }}
+{% endblock %}
 

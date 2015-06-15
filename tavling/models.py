@@ -17,26 +17,36 @@ class Tavling(models.Model):
 
     # Definitivt nödvändigt
     reftid = models.DecimalField("Referenstid", max_digits=5, decimal_places=2, null=True, blank=True)
-
-    # FIXME:
-    #
-    # plats
-    # tid/datum
+    plats = models.CharField("Plats", max_length=50)
+    tid = models.DateField("Datum")
 
     def __unicode__(self):
         return "%s, %s" % (self.namn, self.typ)
 
     def deltagare(self):
-        alla = {}
+        alla = []
         for lag in self.lag.all():
-            alla[lag] = {'deltagare': {}, 'resultat': None}
-            alla[lag]['resultat'] = lag.resultat(self)
+
+            _a = {'lag': lag,
+                  'deltagare': [],
+                  'resultat': lag.resultat(self)}
             for ekipage in lag.ekipage.all():
+                _r = None
                 try:
-                    alla[lag]['deltagare'][ekipage] = Resultat.objects.get(ekipage=ekipage, tavling=self)
+                    _r = Resultat.objects.get(tavling=self, ekipage=ekipage)
                 except:
-                    alla[lag]['deltagare'][ekipage] = None
-        return alla
+                    pass
+
+                _a['deltagare'].append({'ekipage': ekipage,
+                                        'resultat': _r})
+
+            _a['deltagare'].sort(key=operator.itemgetter('resultat'))
+            alla.append(_a)
+
+        a = [SortableResult(x['resultat']['fel'], x['resultat']['tid']) for x in alla]
+        print a
+        print sorted(a)
+        return sorted(alla, key=lambda x: SortableResult(x['resultat']['fel'], x['resultat']['tid']))
 
 class Ekipage(models.Model):
     hundid = models.CharField("Hundens registreringsnummer", max_length=25)
@@ -70,8 +80,7 @@ class Lag(models.Model):
         allresults = Resultat.objects\
                              .filter(tavling=tavling)\
                              .filter(ekipage__lag=self)
-        print allresults
-        n_all = len(allresults)
+        n_all = allresults.count()
 
         # Incomplete result
         if n_all < 3:
@@ -79,8 +88,7 @@ class Lag(models.Model):
 
         # Limit to only valid results
         goodresults = allresults.exclude(tid=Resultat.RESULT_DISQUALIFIED)
-        print goodresults
-        n_good = len(goodresults)
+        n_good = goodresults.count()
 
         # FIXME: I suppose a team has no results until it's proven to
         # be disqualified, which happens when there's less than three
@@ -92,10 +100,9 @@ class Lag(models.Model):
             else:
                 return {'tid': None, 'fel': None}
 
-        bestresults = goodresults.order_by('fel','tid')[:3]
-        print bestresults
+        bestresults = sorted(goodresults, key=lambda x: (x.fel(), x.tid))[:3]
         return {'tid': sum([r.tid for r in bestresults]),
-                'fel': sum([r.fel for r in bestresults])}
+                'fel': sum([r.fel() for r in bestresults])}
 
     def resultat_fel(self, tavling):
         return self.resultat(tavling)[0]
@@ -118,14 +125,20 @@ class Resultat(models.Model):
     ekipage = models.ForeignKey(Ekipage)
     tavling = models.ForeignKey(Tavling)
 
-    tid = models.DecimalField("Tid", max_digits=5, decimal_places=2)
-    teknikfel = models.DecimalField("Fel", max_digits=5, decimal_places=2,
-                                    null=True, blank=True)
+    diskvalificerad = models.BooleanField("Diskvalificerad")
+
+    # ... eller ...
+
+    tid = models.DecimalField("Tid", max_digits=3, decimal_places=2, null=True, blank=True)
+    teknikfel = models.DecimalField("Fel", max_digits=3, decimal_places=0, null=True, blank=True)
+
+    def disqualified(self):
+        return self.diskvalificierad == True
 
     def fel(self):
         """Returnerar tidsfel, DISQUALIFIED eller None för fel, disk eller
 inget resultat registrerat."""
-        if self.tid == self.RESULT_DISQUALIFIED:
+        if self.disqualified():
             return self.RESULT_DISQUALIFIED
 
         elif self.tavling.reftid is None:
@@ -137,9 +150,149 @@ inget resultat registrerat."""
 
     def __unicode__(self):
         s = "%s och %s: " % (self.ekipage.forare, self.ekipage.hundnamn)
-        if self.tid == self.RESULT_DISQUALIFIED:
-            s += "disk"
+        if self.disqualified():
+            s += "diskvalificerade"
         else:
             s += "%0.2fs, " % self.tid
             s += "%d fel" % self.fel()
         return s
+
+
+    # Custom sort functions so I can easily sort and compare Result
+    # objects.
+    #
+    ###########################
+    # REMINDER: LESS IS MORE. #
+    ###########################
+
+    def __lt__(self, other):
+        if other is None:
+            return None
+
+        a = SortableResult(self.fel(), self.tid, self.disqualified)
+        b = SortableResult(other.fel(), other.tid, other.disqualified)
+        return a < b
+
+    def __le__(self, other):
+        if other is None:
+            return None
+
+        a = SortableResult(self.fel(), self.tid, self.disqualified)
+        b = SortableResult(other.fel(), other.tid, other.disqualified)
+        return a <= b
+
+
+    def __gt__(self, other):
+        if other is None:
+            return None
+
+        a = SortableResult(self.fel(), self.tid, self.disqualified)
+        b = SortableResult(other.fel(), other.tid, other.disqualified)
+        return a > b
+
+    def __ge__(self, other):
+        if other is None:
+            return None
+
+        a = SortableResult(self.fel(), self.tid, self.disqualified)
+        b = SortableResult(other.fel(), other.tid, other.disqualified)
+        return a >= b
+
+    def __eq__(self, other):
+        if not other:
+            return False
+
+        a = SortableResult(self.fel(), self.tid, self.disqualified)
+        b = SortableResult(other.fel(), other.tid, other.disqualified)
+        return a == b
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
+
+class SortableResult:
+    def __init__(self, faults, time, disq):
+        self.faults = faults
+        self.time = time
+        self.disq = disq
+
+    def __repr__(self):
+        return self.__unicode__()
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        if self.faults is None:
+            return "<Resultat: n/a>"
+        return "<Resultat: %d fel, %0.2fs tid>" % (self.faults, self.time)
+
+    def incomplete(self):
+        return (self.faults is None and self.time is None) and not self.disqualified()
+
+    def disqualified(self):
+        return self.disq
+
+    def __lt__(self, other):
+        # Can't compare None
+        if other is None:
+            return None
+
+        # All disqualifieds are equally bad, so we can't be better
+        # than anyone if we're disqualified.
+        if self.disqualified() and other.disqualified():
+            return False
+
+        if self.disqualified():
+            return False
+
+        if other.disqualified():
+            return True
+
+        # If we're incomplete, we're not better than the opposition -
+        # just possibly equal to them.
+
+        if self.incomplete() and other.incomplete():
+            return False
+
+        if self.incomplete():
+            return False
+
+        if other.incomplete():
+            return True
+
+        # We're neither disqualified or incomplete! Only compare times
+        # if we have an equal amount of faults.
+
+        if self.faults != other.faults:
+            return self.faults < other.faults
+
+        return self.time < other.time
+
+
+    def __le__(self, other):
+        return self.__lt__(other) or self.__eq__(other)
+
+    def __gt__(self, other):
+        return not self.__le__(other)
+
+    def __ge__(self, other):
+        if self.__eq__(other) or self.__gt__(other):
+            return True
+        return False
+
+    def __eq__(self, other):
+        if other is None:
+            return False
+
+        if (self.disqualified() and other.disqualified()) or \
+           (self.incomplete() and other.incomplete()):
+            return True
+
+        return self.faults == other.faults and self.time == other.time
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+

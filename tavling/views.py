@@ -1,9 +1,14 @@
+# -*- coding: utf-8 -*-
 # Create your views here.
 from tavling.models import Tavling, Ekipage, Lag
 from django.shortcuts import render_to_response, get_object_or_404
 
 def index(request):
     tavlingar = Tavling.objects.all()
+    for t in tavlingar:
+        print "__", t
+        print "____", t.deltagare()
+    
     return render_to_response('tavling/index.dtl',
                               {'tavlingar': tavlingar})
 
