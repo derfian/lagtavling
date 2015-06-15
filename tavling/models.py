@@ -4,18 +4,11 @@ from django.db import models, connection
 import logging
 import operator
 
-class Tavling(models.Model):
-    TAVLING_TYPES = ((u'AG', u'Agilityklass'),
-                     (u'HO', u'Hoppklass'))
+# ----------------------------------------
+
+class Klass(models.Model):
     namn = models.CharField("Tävlingsnamn", max_length=200)
-
-    # FIXME: nödvändigt?
-    typ = models.CharField("Klass", max_length=2, choices=TAVLING_TYPES)
-
-    # FIXME: nödvändigt?
     domare = models.CharField("Domare", max_length=100)
-
-    # Definitivt nödvändigt
     reftid = models.DecimalField("Referenstid", max_digits=5, decimal_places=2, null=True, blank=True)
     plats = models.CharField("Plats", max_length=50)
     tid = models.DateField("Datum")
@@ -48,6 +41,8 @@ class Tavling(models.Model):
         print sorted(a)
         return sorted(alla, key=lambda x: SortableResult(x['resultat']['fel'], x['resultat']['tid']))
 
+# ----------------------------------------
+
 class Ekipage(models.Model):
     hundid = models.CharField("Hundens registreringsnummer", max_length=25)
     hundnamn = models.CharField("Hundens namn", max_length=50)
@@ -57,9 +52,11 @@ class Ekipage(models.Model):
     def __unicode__(self):
         return "%s & %s" % (self.forare, self.hundnamn)
 
+# ----------------------------------------
+
 class Lag(models.Model):
     namn = models.CharField("Lagets namn", max_length=60)
-    tavling = models.ManyToManyField(Tavling, through='Laganmalan', related_name='lag')
+    tavling = models.ManyToManyField(Klass, through='Laganmalan', related_name='lag')
     ekipage = models.ManyToManyField(Ekipage, related_name='lag')
 
     def __unicode__(self):
@@ -110,20 +107,23 @@ class Lag(models.Model):
     def resultat_tid(self, tavling):
         return self.resultat(tavling)[1]
 
+# ----------------------------------------
 
 class Laganmalan(models.Model):
-    tavling = models.ForeignKey(Tavling)
+    tavling = models.ForeignKey(Klass)
     lag = models.ForeignKey(Lag)
     startordning = models.IntegerField()
 
     def __unicode__(self):
-        return "<Lag %s: Tavling %s>" % (self.lag, self.tavling)
+        return "<Lag %s: Klass %s>" % (self.lag, self.tavling)
+
+# ----------------------------------------
 
 class Resultat(models.Model):
     RESULT_DISQUALIFIED = -1
 
     ekipage = models.ForeignKey(Ekipage)
-    tavling = models.ForeignKey(Tavling)
+    tavling = models.ForeignKey(Klass)
 
     diskvalificerad = models.BooleanField("Diskvalificerad")
 
@@ -209,7 +209,7 @@ inget resultat registrerat."""
     def __ne__(self, other):
         return not self.__eq__(other)
 
-
+# ----------------------------------------
 
 class SortableResult:
     def __init__(self, faults, time, disq):

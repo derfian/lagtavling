@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from tavling.models import Tavling, Lag, Ekipage, Resultat, Laganmalan
+from tavling.models import Klass, Lag, Ekipage, Resultat, Laganmalan
 from django.contrib import admin
 from django import forms
 from django.core.exceptions import ValidationError
@@ -17,7 +17,7 @@ class LagAdmin(admin.ModelAdmin):
     form = LagForm
 
 admin.site.register(Lag, LagAdmin)
-admin.site.register(Tavling)
+admin.site.register(Klass)
 admin.site.register(Ekipage)
 admin.site.register(Resultat)
 admin.site.register(Laganmalan)
