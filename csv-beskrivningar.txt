@@ -1,0 +1,20 @@
+Lag
+===
+0 STARTNR (ej katalognummer),
+1 (sbknummer),
+2 Lag,
+3 hund-regnr,
+4 Stamtavlenamn,
+5 Hundnamn,
+6 Ras,
+7 Efternamn,
+8 Förnamn,
+9 Klubb
+
+1	879906	Team Jami Hundsport	REGV1196/2008	Västerängs Joey	JOEY	Border collie	BJÖRNSKIÖLD	MADDE	Oskarshamns BK
+
+
+Individuellt
+============
+
+FIXME:
