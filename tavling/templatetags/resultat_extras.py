@@ -1,41 +1,22 @@
 # -*- coding: utf-8 -*-
 from django import template
-from tavling.models import Resultat
+from tavling.utils import result_to_beat
 
 register = template.Library()
 
 @register.filter
-def resultat_tid(value):
+def resultat(value, attrs="", borders=True, extra_classes=[]):
     if value is None:
-        return ""
-    elif value == Resultat.RESULT_DISQUALIFIED:
-        return "Diskvalificerad"
+        return '<td colspan="2" class="td-border-left td-border-right %s"></td>' % (' '.join(extra_classes))
+    elif value[2]:
+        return '<td colspan="2" class="text-center danger td-border-left td-border-right %s">Diskvalificerad</td>' % (' '.join(extra_classes))
     else:
-        return value
+        return '<td class="text-center td-border-left %s">%s</td><td class="text-center td-border-right %s">%0.2f</td>' % (' '.join(extra_classes),
+                                                                                                                           value[0],
+                                                                                                                           ' '.join(extra_classes),
+                                                                                                                           value[1])
+
 
 @register.filter
-def resultat_fel(value):
-    if value is None:
-        return ""
-    elif value == Resultat.RESULT_DISQUALIFIED:
-        return "--"
-    else:
-        return value
-
-@register.filter
-def lagresultat_tid(value):
-    if value is None:
-        return "--"
-    elif value == Resultat.RESULT_DISQUALIFIED:
-        return "Diskvalificerad"
-    else:
-        return value
-
-@register.filter
-def lagresultat_fel(value):
-    if value is None:
-        return "--"
-    elif value == Resultat.RESULT_DISQUALIFIED:
-        return "Diskvalificerad"
-    else:
-        return value
+def resultat_att_sla(value, leader):
+    return resultat(result_to_beat(leader, value), extra_classes=['shadow_result'])

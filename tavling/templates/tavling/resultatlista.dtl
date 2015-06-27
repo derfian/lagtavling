@@ -1,0 +1,42 @@
+{# -*- mode: web; -*- #}
+
+{% extends "tavling/base.dtl" %}
+
+{% block content %}
+
+{% block headline %}
+{% endblock %}
+
+<table class="table table-condensed">
+    <thead>
+        <tr>
+            <th colspan="2"></th>
+            <th>{% block lagknappar %}{% endblock %}</th>
+            <th class="text-center" colspan="2">Hoppresultat</th>
+            <th class="text-center" colspan="2">Agilityresultat</th>
+            <th class="text-center" colspan="2">Sammanlagt</th>
+            <th class="text-center shadow_result" colspan="2">Tid att slå</th>
+        </tr>
+        <tr>
+            <th>Plats</th>
+            <th>Nr</th>
+            <th>{% spaceless %}
+                {% block teamorcontestant %}
+                    ??
+                {% endblock %}
+            {% endspaceless %}</th>
+            <th class="text-center th-border-left">Fel</th>
+            <th class="text-center th-border-right">Tid</th>
+            <th class="text-center">Fel</th>
+            <th class="text-center th-border-right">Tid</th>
+            <th class="text-center">Fel</th>
+            <th class="text-center th-border-right">Tid</th>
+            <th class="text-center shadow_result">Fel</th>
+            <th class="text-center th-border-right shadow_result">Tid</th>
+
+        </tr>
+    </thead>
+{% block resulttable %}
+{% endblock %}
+</table>
+{% endblock %}

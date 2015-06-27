@@ -6,10 +6,9 @@ admin.autodiscover()
 
 urlpatterns = patterns('tavling.views',
     # Examples:
-    url(r'^$',                              'index'),
-    url(r'^tavling/(?P<tavling_id>\d+)/$',  'tavling'),
-    url(r'^ekipage/(?P<ekipage_id>\d+)/$',  'ekipage'),
-    url(r'^lag/(?P<lag_id>\d+)/$',          'lag'),
+    url(r'^$',                                     'index', name='index'),
+    url(r'^(?P<storlek>small|medium|large)/$',     'individuellt', name='individuellt'),
+    url(r'^lag/(?P<storlek>small|medium|large)/$', 'lag', name='lag'),
 )
 
 urlpatterns += patterns('',

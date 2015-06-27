@@ -1,23 +1,41 @@
 # -*- coding: utf-8 -*-
-from tavling.models import Klass, Lag, Ekipage, Resultat, Laganmalan
+#from tavling.models import Klass, Lag, Ekipage, Resultat, Laganmalan
 from django.contrib import admin
 from django import forms
 from django.core.exceptions import ValidationError
 
-class LagForm(forms.ModelForm):
-    class Meta:
-        model = Lag
-    def clean(self):
-        ekipage = self.cleaned_data.get('ekipage')
-        if ekipage is not None and ekipage.count() > 4:
-            raise ValidationError("För många deltagare i laget!")
-        return self.cleaned_data
+from tavling.models import Contestant, TeamMember, Result, Team, IndividualStart, ReferenceTime
 
-class LagAdmin(admin.ModelAdmin):
-    form = LagForm
+#class ContestantInline(admin.TabularInline):
+#    model = Contestant
 
-admin.site.register(Lag, LagAdmin)
-admin.site.register(Klass)
-admin.site.register(Ekipage)
-admin.site.register(Resultat)
-admin.site.register(Laganmalan)
+class TeamMemberInline(admin.TabularInline):
+    model = TeamMember
+    max_num = 4
+    extra = 4
+    ordering = ('teamorder',)
+
+class TeamAdmin(admin.ModelAdmin):
+    inlines = [TeamMemberInline]
+    list_filter = ('size',)
+    list_display = ('size', 'order', 'name')
+    ordering = ('size', 'order')
+
+admin.site.register(Team, TeamAdmin)
+
+class IndividualAdmin(admin.ModelAdmin):
+    list_filter = ('size',)
+    list_display = ('size', 'order', 'contestant', 'jumping_result', 'agility_result')
+    ordering = ('size', 'order')
+    list_editable = ('jumping_result', 'agility_result')
+    
+admin.site.register(IndividualStart, IndividualAdmin)
+
+
+admin.site.register(ReferenceTime)
+
+# Hide these from the regular admin interface - you're only supposed
+# to edit them through teams and individual starts.
+
+admin.site.register(Result)
+admin.site.register(Contestant)

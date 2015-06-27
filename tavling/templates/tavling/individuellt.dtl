@@ -1,0 +1,35 @@
+{# -*- mode: web; -*- #}
+
+{% extends "tavling/resultatlista.dtl" %}
+
+{% load resultat_extras %}
+
+{% block headline %}
+    <h1>Agility-SM: Individuell {{ storlek }}</h1>
+{% endblock %}
+
+{% block teamorcontestant %}Tävlande{% endblock %}
+
+{% block resulttable %}
+    {% with deltagare|first as leader %}
+        {% for d in deltagare %}
+            <tr>
+                <td>{% spaceless %}
+                    {% if d.aggregate and not d.disqualified %}
+                        {{ forloop.counter }}
+                    {% endif %}
+                {% endspaceless %}</td>
+                <td>{{ d.order }}</td>
+                <td>{{ d.contestant }}</td>
+                {{ d.hoppresultat|resultat|safe }}
+                {{ d.agilityresultat|resultat|safe }}
+                {{ d.aggregate|resultat|safe }}
+                {{ d|resultat_att_sla:leader|safe }}
+            </tr>
+        {% empty %}
+            <tr class="danger">
+                <td colspan="11">Inga deltagare.</td>
+            </tr>
+        {% endfor %}
+    {% endwith %}
+{% endblock %}

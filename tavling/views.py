@@ -1,29 +1,24 @@
 # -*- coding: utf-8 -*-
 # Create your views here.
-from tavling.models import Klass, Ekipage, Lag
+from tavling.models import *
+from tavling.utils import sortfunc_object
+
 from django.shortcuts import render_to_response, get_object_or_404
 
 def index(request):
-    tavlingar = Klass.objects.all()
-    for t in tavlingar:
-        print "__", t
-        print "____", t.deltagare()
-    
-    return render_to_response('tavling/index.dtl',
-                              {'tavlingar': tavlingar})
+    return render_to_response('tavling/index.dtl')
 
-def tavling(request, tavling_id):
-    _tavling = get_object_or_404(Klass, pk=tavling_id)
-    return render_to_response('tavling/tavling_details.dtl',
-                              {'tavling': _tavling,
-                               'resultat': alla_deltagare(_tavling)})
+def lag(request, storlek):
+    lag = Team.objects.filter(size=storlek[0].upper()).order_by('order')
+    lag = sorted(lag, key=sortfunc_object)
+    return render_to_response('tavling/lag.dtl',
+                              {'lag': lag,
+                               'storlek': storlek})
 
-def ekipage(request, ekipage_id):
-    _ekipage = get_object_or_404(Ekipage, pk=ekipage_id)
-    return render_to_response('tavling/ekipage_details.dtl',
-                              {'ekipage': _ekipage})
 
-def lag(request, lag_id):
-    _lag = get_object_or_404(Lag, pk=lag_id)
-    return render_to_response('tavling/lag_details.dtl',
-                              {'lag': _lag})
+def individuellt(request, storlek):
+    deltagare = IndividualStart.objects.filter(size=storlek[0].upper())
+    deltagare = sorted(deltagare, key=sortfunc_object)
+    return render_to_response('tavling/individuellt.dtl',
+                              {'deltagare': deltagare,
+                               'storlek': storlek})

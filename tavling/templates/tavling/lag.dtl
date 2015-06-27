@@ -1,0 +1,65 @@
+{# -*- mode: web; -*- #}
+
+{% extends "tavling/resultatlista.dtl" %}
+
+{% load resultat_extras %}
+
+{% block headline %}
+    <h1>Agility-SM: Lag {{ storlek }}</h1>
+{% endblock %}
+
+{% block teamorcontestant %}
+    Lag
+{% endblock %}
+
+{% block lagknappar %}
+    <a role="button" data-toggle="collapse" data-target=".teamrow" href="#">
+        <button type="button" class="btn btn-default">Visa/dölj alla</button>
+    </a>
+{% endblock %}
+
+{% block resulttable %}
+    {% with lag|first as leader %}
+        {% for l in lag %}
+            <tr>
+                <td>{% spaceless %}
+                    {% if l.aggregate and not l.disqualified %}
+                        {{ forloop.counter }}
+                    {% endif %}
+                {% endspaceless %}</td>
+                <td>{{ l.order }}</td>
+                <td>
+                    <a role="button" data-toggle="collapse" data-target=".teammember{{ forloop.counter }}" href="#">
+                        <strong>{{ l.name }}</strong>
+                        <span class="caret"></span>
+                    </a>
+                </td>
+                {{ l.hoppresultat|resultat|safe }}
+                {{ l.agilityresultat|resultat|safe }}
+                {{ l.aggregate|resultat|safe }}
+                {{ l|resultat_att_sla:leader|safe }}
+            </tr>
+            {% with outercounter=forloop.counter %}
+                {# Always force members into team order. #}
+                {% for d in l.members.all|dictsort:"teamorder" %}
+                    <tr class="collapse out teamrow active teammember{{ outercounter }}">
+                        <td></td>
+                        <td class="slight-indent">{{ l.order }}{{ d.teamorder }}</td>
+                        <td class="slight-indent">{{ d.contestant }}</td>
+                        {{ d.hoppresultat|resultat|safe }}
+                        {{ d.agilityresultat|resultat|safe }}
+                        {# Team members has no aggregates, so we put an empty td spanning two columns here. #}
+                        <td colspan="2" class="td-border-right"></td>
+                        {# Team member has no times to beat either, so we put another two-column td here. #}
+                        <td colspan="2" class="td-border-right"></td>
+                    </tr>
+                {% endfor %}
+            {% endwith %}
+        {% empty %}
+            <tr class="warning">
+                <td colspan="9">Inga deltagare</td>
+            </tr>
+        {% endfor %}
+    {% endwith %}
+{% endblock %}
+

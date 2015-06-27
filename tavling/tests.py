@@ -1,3 +1,4 @@
+# -*- mode: python; coding: utf-8 -*-
 """
 This file demonstrates writing tests using the unittest module. These will pass
 when you run "manage.py test".
@@ -6,70 +7,169 @@ Replace this with more appropriate tests for your application.
 """
 
 from django.test import TestCase
-from tavling.models import SortableResult, Resultat
-import operator
+from tavling.utils import *
+from tavling.models import Result, Contestant, IndividualStart
 
+class AddResultsTestCase(TestCase):
+    def test_add_two_results(self):
+        a = (0, 5.0, False)
+        b = (0, 10.0, False)
+        c = (5, 5.0, False)
+        d = (5, 10.0, False)
+        e = (0, 10.0, True)
+        f = (None, None, True)
+        self.assertEqual(add_results(a,b), (0, 15.0, False))
+        self.assertEqual(add_results(a,c), (5, 10.0, False))
+        self.assertEqual(add_results(a,d), (5, 15.0, False))
+        self.assertEqual(add_results(a,e), (None, None, True))
+        self.assertEqual(add_results(a,f), (None, None, True))
 
-class SortableResultTestCase(TestCase):
+class CombineResultsTestCase(TestCase):
+
+    # Less than three valid results → None
+
+    def test_incomplete(self):
+        # valid, 3 × incomplete
+        r = [(1, 2, False), None, None, None]
+        self.assertEqual(combine_results(r), None)
+
+        # 2 × valid, 2 × incomplete
+        r = [(1, 2, False), (2, 3, False), None, None]
+        self.assertEqual(combine_results(r), None)
+
+    # Less than three valid+incomplete results → disqualified
+
+    def test_disqualified(self):
+        # 2 × disqualified, 2 × incomplete
+        r = [(None, None, True), (None, None, True), None, None]
+        self.assertEqual(combine_results(r), (None, None, True))
+
+        # Too few results results in disqualified no matter what
+        r = [None, None]
+        self.assertEqual(combine_results(r), (None, None, True))
+
+    def test_three_valid(self):
+        # Three valids
+        r = [(0, 10, False), (1, 11, False), (2, 12, False)]
+        self.assertEqual(combine_results(r), (3, 33, False))
+
+        # With a fourth incomplete
+        r = [(0, 10, False), (1, 11, False), (2, 12, False), None]
+        self.assertEqual(combine_results(r), (3, 33, False))
+
+        # With a fourth disqualification
+        r = [(0, 10, False), (1, 11, False), (2, 12, False), (None, None, True)]
+        self.assertEqual(combine_results(r), (3, 33, False))
+
+    def test_four_valid(self):
+        # Make sure only the three best results are selected.
+        r = [(0, 10, False),
+             (1, 11, False),
+             (2, 12, False),
+             (3, 13, False)]
+        self.assertEqual(combine_results(r),
+                         (3, 33, False))
+
+        r = [(0, 10, False),
+             (0, 10, False),
+             (0, 10, False),
+             (3, 13, False)]
+        self.assertEqual(combine_results(r),
+                         (0, 30, False))
+
+        r = [(0, 30, False),
+             (0, 30, False),
+             (0, 30, False),
+             (3, 10, False)]
+        self.assertEqual(combine_results(r),
+                         (0, 90, False))
+
+class SortFuncTupleTestCase(TestCase):
     def setUp(self):
-        self.base = SortableResult(1, 5.0, False)
-        self.equal = SortableResult(1, 5.0, False)
+        pass
 
-        self.greaters = [SortableResult(1, 6.0, False),
-                         SortableResult(2, 5.0, False),
-                         SortableResult(2, 4.0, False),
-                         SortableResult(None, None, True)]
+    def test_sort_results_over_incomplete(self):
+        a = (0, 10.0, False)
+        b = None
+        self.assertEqual(sorted([a, b], key=sortfunc_tuple)[0], a)
+        self.assertEqual(sorted([b, a], key=sortfunc_tuple)[0], a)
 
-        self.lessers = [SortableResult(1, 4.0, False),
-                        SortableResult(0, 5.0, False),
-                        SortableResult(0, 10.0, False)]
+    def test_sort_results_over_disqualified(self):
+        a = (0, 10.0, False)
+        b = (0, 10.0, True)
+        self.assertEqual(sorted([a, b], key=sortfunc_tuple)[0], a)
+        self.assertEqual(sorted([b, a], key=sortfunc_tuple)[0], a)
 
-        self.incompletes = [SortableResult(None, None, False),
-                            SortableResult(None, None, False)]
+    def test_sort_disqualified_over_incomplete(self):
+        a = None
+        b = (0, 10.0, True)
+        self.assertEqual(sorted([a, b], key=sortfunc_tuple)[0], b)
+        self.assertEqual(sorted([b, a], key=sortfunc_tuple)[0], b)
 
-        self.disqualifieds = [SortableResult(None, None, True),
-                              SortableResult(None, None, True)]
+# FIXME: Set up two contestants and two teams with results and compare
+#        them, the following is wrong.
+#
+class SortFuncObjectTestCase(TestCase):
+    def setUp(self):
+        self.c1 = Contestant.objects.create(handler='Test1 Testsson', dog='Vov1 vovvson')
+        self.c2 = Contestant.objects.create(handler='Test2 Testsson', dog='Vov2 vovvson')
 
-    def test_equal(self):
-        self.assertEqual(self.base, self.equal)
+        self.i1 = IndividualStart.objects.create(contestant=self.c1,
+                                                order=1,
+                                                size='S',
+                                                jumping_result=None,
+                                                agility_result=None)
 
-        # All incompletes are equal to each other
-        candidate = self.incompletes[0]
-        for incomplete in self.incompletes:
-            self.assertEqual(candidate, incomplete)
+        self.i2 = IndividualStart.objects.create(contestant=self.c2,
+                                                order=2,
+                                                size='S',
+                                                jumping_result=None,
+                                                agility_result=None)
 
-        # All disqualifies are equal to each other
-        candidate = self.disqualifieds[0]
-        for disq in self.disqualifieds:
-            self.assertEqual(candidate, disq)
+    def test_sort_results_over_incomplete(self):
+        self.rc = Result.objects.create(penalties=0, time='10.0', disqualified=False)
+        #self.rd = Result.objects.create(penalties=None, time=None, disqualified=True)
 
+        # Set results
+        self.i1.jumping_result = self.rc
+        self.i1.agility_result = self.rc
+        self.i1.save()
 
-    def test_not_equal(self):
-        for n in self.greaters + self.lessers + self.incompletes + self.disqualifieds:
-            self.assertNotEqual(self.base, n,
-                                "%s is equal to %s" % (n, self.base))
+        self.i2.jumping_result = None
+        self.i2.agility_result = None
+        self.i2.save()
 
-    def test_gt(self):
-        for n in self.greaters:
-            self.assertTrue(n > self.base,
-                            "%s is not greater than %s" % (n, self.base))
-            self.assertFalse(n > self.incompletes[0])
-            self.assertFalse(n > self.disqualifieds[0])
+        self.assertEqual(sorted([self.i1, self.i2], key=sortfunc_object)[0], self.i1)
+        self.assertEqual(sorted([self.i2, self.i1], key=sortfunc_object)[0], self.i1)
 
-    def test_lt(self):
-        for n in self.lessers:
-            self.assertTrue(n < self.base,
-                            "%s is not less than %s" % (n, self.base))
-            self.assertTrue(n < self.incompletes[0])
-            self.assertTrue(n < self.disqualifieds[0])
+    def test_sort_results_over_disqualified(self):
+        self.rc = Result.objects.create(penalties=0, time='10.0', disqualified=False)
+        self.rd = Result.objects.create(penalties=None, time=None, disqualified=True)
 
-    def test_le(self):
-        for n in self.lessers + [self.equal]:
-            self.assertTrue(n <= self.base,
-                            "%s is not lesser or equal to %s" % (n, self.base))
+        # Set results
+        self.i1.jumping_result = self.rc
+        self.i1.agility_result = self.rc
+        self.i1.save()
 
-    def test_ge(self):
-        for n in self.greaters + [self.equal]:
-            self.assertTrue(n >= self.base,
-                            "%s is not greater or equal to %s" % (n, self.base))
+        self.i2.jumping_result = self.rd
+        self.i2.agility_result = self.rd
+        self.i2.save()
 
+        self.assertEqual(sorted([self.i1, self.i2], key=sortfunc_object)[0], self.i1)
+        self.assertEqual(sorted([self.i2, self.i1], key=sortfunc_object)[0], self.i1)
+
+    def test_sort_results(self):
+        self.rc1 = Result.objects.create(penalties=0, time='10.0', disqualified=False)
+        self.rc2 = Result.objects.create(penalties=0, time='15.0', disqualified=False)
+
+        # Set results
+        self.i1.jumping_result = self.rc1
+        self.i1.agility_result = self.rc1
+        self.i1.save()
+
+        self.i2.jumping_result = self.rc1
+        self.i2.agility_result = self.rc2
+        self.i2.save()
+
+        self.assertEqual(sorted([self.i1, self.i2], key=sortfunc_object)[0], self.i1)
+        self.assertEqual(sorted([self.i2, self.i1], key=sortfunc_object)[0], self.i1)
