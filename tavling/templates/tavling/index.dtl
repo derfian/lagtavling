@@ -7,7 +7,7 @@
 
     <h2>TODO</h2>
     <ul>
-	<li><span class="label label-warning">gui</span> Auto-refresh på resultatsidor</li>
+	<li><s><span class="label label-warning">gui</span> Auto-refresh på resultatsidor</s></li>
         <li><span class="label label-primary">admin</span> Se om det går att dölja <code>Result</code> och <code>Contestant</code> från Tävlingsadministrationen</li>
         <li><span class="label label-danger">doc</span> Användarguide</li>
         <li><s><span class="label label-primary">admin</span> Ändra ordning på storlek, startordning och lagnamn i lagvyn</s> -- samma som individuellt nu</li>

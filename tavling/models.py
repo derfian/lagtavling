@@ -35,6 +35,9 @@ class Contestant(models.Model):
     def __unicode__(self):
         return "%s och %s" % (self.handler, self.dog)
 
+    class Meta:
+        verbose_name = 'Ekipage'
+
 class Result(models.Model):
     time = models.DecimalField('Tid', max_digits=5, decimal_places=2, null=True, blank=True)
     penalties = models.PositiveIntegerField('Fel (utan tidsfel)', null=True, blank=True, default=0)
@@ -46,12 +49,17 @@ class Result(models.Model):
         else:
             return "%d fel, %0.2fs" % (self.penalties, self.time)
 
+    class Meta:
+        verbose_name = 'Resultat'
 
 class ReferenceTime(models.Model):
     size = models.CharField('Storlek', choices=SIZES, max_length=1)
     klass = models.CharField('Klass', choices=KLASS, max_length=1)
     type = models.CharField('Typ', choices=TYPE, max_length=1)
     reference = models.DecimalField('Referenstid', max_digits=5, decimal_places=2)
+
+    def __unicode__(self):
+        return "%s %s %s" % (self.size, self.klass, self.type)
 
     class Meta:
         unique_together = (('size','klass','type'),)
@@ -61,6 +69,9 @@ class Team(models.Model):
     size = models.CharField('Storlek', choices=SIZES, max_length=1)
     name = models.CharField('Lagnamn', max_length=100, unique=True)
     order = models.PositiveIntegerField('Startordning')
+
+    class Meta:
+        verbose_name = "LAG"
 
     def __unicode__(self):
         return "%s %d: %s" % (self.size, self.order, self.name)
@@ -89,6 +100,7 @@ class Team(models.Model):
 class TeamMember(models.Model):
     class Meta:
         unique_together = (('team', 'teamorder'),)  # A team can't share teamorder with other teams
+        verbose_name = "Lagmedlem"
 
     team = models.ForeignKey(Team, related_name='members')
     contestant = models.ForeignKey(Contestant, related_name='+', unique=True)
@@ -110,10 +122,10 @@ class TeamMember(models.Model):
     def agilityresultat(self):
         return get_result(self.agility_result, self.team.size, 'L', 'A')
 
-
 class IndividualStart(models.Model):
     class Meta:
         unique_together = (('order', 'size'),)
+        verbose_name = "INDIVIDUELL START"
 
     # You can only compete once per handler/dog combination.
     contestant = models.ForeignKey(Contestant, unique=True)

@@ -2,6 +2,10 @@
 
 {% extends "tavling/base.dtl" %}
 
+{% block metatags %}
+<meta http-equiv="refresh" content="20">
+{% endblock %}
+
 {% block content %}
 
 {% block headline %}

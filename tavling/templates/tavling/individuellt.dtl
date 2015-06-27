@@ -28,7 +28,7 @@
             </tr>
         {% empty %}
             <tr class="danger">
-                <td colspan="11">Inga deltagare.</td>
+                <td colspan="11">Inga deltagare inlagda (vänta!)</td>
             </tr>
         {% endfor %}
     {% endwith %}
