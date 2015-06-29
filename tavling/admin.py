@@ -19,6 +19,7 @@ class TeamAdmin(admin.ModelAdmin):
     inlines = [TeamMemberInline]
     list_filter = ('size',)
     list_display = ('size', 'order', 'name')
+    list_display_links = ('name',)
     ordering = ('size', 'order')
 
 admin.site.register(Team, TeamAdmin)
