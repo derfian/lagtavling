@@ -1,0 +1,13 @@
+* Lagtävling
+
+Lagtävling is a web tool written in Python with the help of the Django
+framework that helps you manage the results of your dog agility and
+jumping competitions, where you combine two heats to get a final
+result. It supports both individual starts and teams. It was made for
+and used during the 2015 Swedish Dog Agility Championship.
+
+This is specialized software made for a very specific need, and as
+such it may not be applicate to your needs, even if you believe your
+needs are similar.
+
+NOTE: The commit history is not very well organized.
